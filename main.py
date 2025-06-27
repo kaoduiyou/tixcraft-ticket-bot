@@ -32,7 +32,8 @@ async def check_tickets():
             response = requests.get(CHECK_URL, headers=headers, timeout=10)
             soup = BeautifulSoup(response.text, 'html.parser')
             now = time.time()
-            if "立即購票" in soup.text or "選擇座位" in soup.text:
+            text = soup.text
+            if re.search(r"剩餘\d+", text):
                 await channel.send(f"🎟️ 有票啦！快衝 👉 {CHECK_URL}")
             elif now - last_report_time >= REPORT_INTERVAL:
                 await channel.send("🕒 [定時通知] 目前仍無釋票（持續監控中）")
