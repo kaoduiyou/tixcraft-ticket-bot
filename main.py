@@ -15,7 +15,7 @@ CHANNEL_ID = int(os.environ['CHANNEL_ID'])
 # ===== tixCraft 網址 & 頻率設定 =====
 CHECK_URL = "https://tixcraft.com/ticket/area/25_bm/19396"
 CHECK_INTERVAL = 30         # 每幾秒檢查一次
-REPORT_INTERVAL = 3600      # 每幾秒報一次平安（預設 1 小時）
+REPORT_INTERVAL = 300      # 每幾秒報一次平安（預設 5 分鐘）
 
 # ===== Discord 初始化 =====
 intents = discord.Intents.default()
