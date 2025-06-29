@@ -14,7 +14,7 @@ CHANNEL_ID = int(os.environ['CHANNEL_ID'])
 
 # ===== tixCraft 網址 & 頻率設定 =====
 CHECK_URL = "https://tixcraft.com/ticket/area/25_bm/19396"
-CHECK_INTERVAL = 30         # 每幾秒檢查一次
+CHECK_INTERVAL = 10         # 每幾秒檢查一次
 REPORT_INTERVAL = 300      # 每幾秒報一次平安（預設 5 分鐘）
 
 # ===== Discord 初始化 =====
@@ -26,20 +26,33 @@ async def check_tickets():
     global last_report_time
     await client.wait_until_ready()
     channel = client.get_channel(CHANNEL_ID)
+    
     while not client.is_closed():
         try:
             headers = {'User-Agent': 'Mozilla/5.0'}
             response = requests.get(CHECK_URL, headers=headers, timeout=10)
             soup = BeautifulSoup(response.text, 'html.parser')
             now = time.time()
-            text = soup.text
-            if re.search(r"剩餘\d+", text):
-                await channel.send(f"🎟️ 有票啦！快衝 👉 {CHECK_URL}")
+
+            result = []
+            for btn in soup.find_all('button'):
+                text = btn.get_text(strip=True)
+                if "剩餘" in text:
+                    result.append(text)
+
+            if result:
+                msg = "🎟️ 有票啦！目前釋出票區如下：\n"
+                for line in result:
+                    msg += f"- {line}\n"
+                msg += f"\n👉 {CHECK_URL}"
+                await channel.send(msg)
+                print("[通知] 已釋票！")
             elif now - last_report_time >= REPORT_INTERVAL:
                 await channel.send("🕒 [定時通知] 目前仍無釋票（持續監控中）")
                 last_report_time = now
+                print("[定時通知] 無票")
             else:
-                print("尚未釋票")
+                print("[掃描中] 尚未釋票")
         except Exception as e:
             print("⚠️ 發生錯誤：", e)
         await asyncio.sleep(CHECK_INTERVAL)
